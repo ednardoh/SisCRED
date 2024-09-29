@@ -1,0 +1,38 @@
+unit uDatamodulo;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, Data.DB, ZAbstractRODataset, ZAbstractDataset, ZDataset,
+  ZAbstractConnection, ZConnection, Vcl.Forms;
+
+type
+  TfrmDatamodulo = class(TDataModule)
+    DBConect: TZConnection;
+    QryAux: TZQuery;
+    dsPesquisa: TDataSource;
+    dsClientes: TDataSource;
+    procedure DataModuleCreate(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    gblValCodigo,
+    gblValNome  : string;
+  end;
+
+var
+  frmDatamodulo: TfrmDatamodulo;
+
+implementation
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+{$R *.dfm}
+
+procedure TfrmDatamodulo.DataModuleCreate(Sender: TObject);
+begin
+  DBConect.LibraryLocation := ExtractFilePath(Application.ExeName)+'ntwdblib.dll';
+end;
+
+end.

@@ -1,0 +1,25 @@
+program ProvatecMicrodata;
+
+uses
+  Vcl.Forms,
+  uPrincipal in 'uPrincipal.pas' {frmPrincipal},
+  uDatamodulo in 'uDatamodulo.pas' {frmDatamodulo: TDataModule},
+  UConecta in 'UConecta.pas',
+  UConexaoBDpas in 'UConexaoBDpas.pas' {frmConectaDB},
+  uClsCliente in 'Classes\uClsCliente.pas',
+  uPesquisa in 'uPesquisa.pas' {FrmPesquisa},
+  uCadCliente in 'uCadCliente.pas' {frmCadCliente},
+  uClsContato in 'Classes\uClsContato.pas',
+  uCadContato in 'uCadContato.pas' {frmCadContato},
+  uClsBaseRestHorse in 'Classes\uClsBaseRestHorse.pas',
+  uClsClienteHorse in 'Classes\uClsClienteHorse.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TfrmDatamodulo, frmDatamodulo);
+  Application.CreateForm(TfrmPrincipal, frmPrincipal);
+  Application.Run;
+end.

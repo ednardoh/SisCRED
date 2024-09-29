@@ -1,0 +1,2 @@
+se faz necessário pegar as bibliotecas(Todos os arquivos da pasta CEF_files) da pasta bin do componente TInject
+..\Projeto-TInject-master\CEF_files

@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{6BEC9719-639B-455A-B2C7-5766E28F1B5B}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="ProvaTecnica.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ChatBot\ChatBotVATD.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ProvaTecTeste\TesteProvaTec.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ProvaTecnica">
+        <MSBuild Projects="ProvaTecnica.dproj"/>
+    </Target>
+    <Target Name="ProvaTecnica:Clean">
+        <MSBuild Projects="ProvaTecnica.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ProvaTecnica:Make">
+        <MSBuild Projects="ProvaTecnica.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ChatBotVATD">
+        <MSBuild Projects="ChatBot\ChatBotVATD.dproj"/>
+    </Target>
+    <Target Name="ChatBotVATD:Clean">
+        <MSBuild Projects="ChatBot\ChatBotVATD.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ChatBotVATD:Make">
+        <MSBuild Projects="ChatBot\ChatBotVATD.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TesteProvaTec">
+        <MSBuild Projects="ProvaTecTeste\TesteProvaTec.dproj"/>
+    </Target>
+    <Target Name="TesteProvaTec:Clean">
+        <MSBuild Projects="ProvaTecTeste\TesteProvaTec.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TesteProvaTec:Make">
+        <MSBuild Projects="ProvaTecTeste\TesteProvaTec.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ProvaTecnica;ChatBotVATD;TesteProvaTec"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ProvaTecnica:Clean;ChatBotVATD:Clean;TesteProvaTec:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ProvaTecnica:Make;ChatBotVATD:Make;TesteProvaTec:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

@@ -1,0 +1,63 @@
+unit uTestParcelas;
+
+interface
+uses
+  TestFramework, FireDAC.Comp.Client, System.SysUtils,
+  Vcl.Forms, DUnitX.TestFramework, REST.Response.Adapter,
+  REST.Client, REST.Types, REST.Json, System.JSON;
+
+type
+
+  [TestFixture]
+  TestTestProvatecParcelas = class(TTestCase)
+  strict private
+    FRESTClient1: TRESTClient;
+    FRESTRequest1: TRESTRequest;
+    FRESTResponse1: TRESTResponse;
+    FRESTResponseDataSetAdapter: TRESTResponseDataSetAdapter;
+  public
+    [Setup]
+    procedure SetUp; override;
+    [TearDown]
+    procedure TearDown; override;
+
+  published
+    procedure TestIncluir;
+    procedure TesteAlterar;
+    procedure TesteExcluir;
+
+  end;
+
+implementation
+
+{ TestTestProvatecParcelas }
+
+procedure TestTestProvatecParcelas.SetUp;
+begin
+
+end;
+
+procedure TestTestProvatecParcelas.TearDown;
+begin
+
+end;
+
+procedure TestTestProvatecParcelas.TesteAlterar;
+begin
+
+end;
+
+procedure TestTestProvatecParcelas.TesteExcluir;
+begin
+
+end;
+
+procedure TestTestProvatecParcelas.TestIncluir;
+begin
+
+end;
+
+initialization
+  RegisterTest(TestTestProvatecParcelas.Suite);
+
+end.

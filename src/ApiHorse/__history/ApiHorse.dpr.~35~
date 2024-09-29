@@ -1,0 +1,53 @@
+program ApiHorse;
+
+{$APPTYPE CONSOLE}
+
+{$R *.res}
+
+uses
+  Horse,
+  Horse.Jhonson,
+  Horse.HandleException,
+  System.SysUtils,
+  Controllers.Cliente in 'src\controllers\Controllers.Cliente.pas',
+  UConecta in 'src\conexao\UConecta.pas',
+  uConexao in 'src\conexao\uConexao.pas',
+  DAO.Cliente in 'src\dao\DAO.Cliente.pas',
+  Controllers.Conexao in 'src\controllers\Controllers.Conexao.pas',
+  Model.Cliente in 'src\model\Model.Cliente.pas',
+  Controllers.Contato in 'src\controllers\Controllers.Contato.pas',
+  DAO.Contato in 'src\dao\DAO.Contato.pas',
+  Model.Contato in 'src\model\Model.Contato.pas',
+  Controllers.Tipopgto in 'src\controllers\Controllers.Tipopgto.pas',
+  DAO.Tipopgto in 'src\dao\DAO.Tipopgto.pas',
+  Model.Tipopgto in 'src\model\Model.Tipopgto.pas',
+  Controllers.Credor in 'src\controllers\Controllers.Credor.pas',
+  DAO.Credor in 'src\dao\DAO.Credor.pas',
+  Model.Credor in 'src\model\Model.Credor.pas',
+  Controllers.Parcela in 'src\controllers\Controllers.Parcela.pas',
+  DAO.Parcela in 'src\dao\DAO.Parcela.pas',
+  Model.Parcela in 'src\model\Model.Parcela.pas',
+  Model.ConsultaDividas in 'src\model\Model.ConsultaDividas.pas',
+  DAO.ConsultaDividas in 'src\dao\DAO.ConsultaDividas.pas',
+  Controller.ConsultaDividas in 'src\controllers\Controller.ConsultaDividas.pas';
+
+begin
+  THorse
+    .Use(Jhonson)
+    .Use(HandleException);
+  Controllers.Cliente.Registry;
+  Controllers.Contato.Registry;
+  Controllers.Tipopgto.Registry;
+  Controllers.Credor.Registry;
+  Controllers.Parcela.Registry;
+  THorse.Listen(9000, procedure(App: THorse)
+  begin
+    Writeln('********************************************************');
+    Writeln('*                                                      *');
+    Writeln('*                                                      *');
+    Writeln('*   O servidor está rodando na porta: '+App.Port.ToString+'             *');
+    Writeln('*                                                      *');
+    Writeln('*                                                      *');
+    Writeln('********************************************************');
+  end);
+end.

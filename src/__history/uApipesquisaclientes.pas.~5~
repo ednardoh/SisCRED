@@ -1,0 +1,35 @@
+unit uApipesquisaclientes;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Vcl.Grids, Vcl.DBGrids, Vcl.ExtCtrls;
+
+type
+  TfrmApipesquisaclientes = class(TForm)
+    PNL_Pesquisacli: TPanel;
+    PNL_top: TPanel;
+    DBG_CadCli: TDBGrid;
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmApipesquisaclientes: TfrmApipesquisaclientes;
+
+implementation
+
+{$R *.dfm}
+
+Uses uCadCliente;
+
+procedure TfrmApipesquisaclientes.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := cafree;
+end;
+
+end.

@@ -1,0 +1,65 @@
+unit uTestCredores;
+
+interface
+uses
+  TestFramework, FireDAC.Comp.Client, System.SysUtils,
+  Vcl.Forms, DUnitX.TestFramework, REST.Response.Adapter,
+  REST.Client, REST.Types, REST.Json, System.JSON;
+
+type
+
+  [TestFixture]
+  TestTestProvatecCredores = class(TTestCase)
+  strict private
+    FRESTClient1: TRESTClient;
+    FRESTRequest1: TRESTRequest;
+    FRESTResponse1: TRESTResponse;
+    FRESTResponseDataSetAdapter: TRESTResponseDataSetAdapter;
+  public
+    [Setup]
+    procedure SetUp; override;
+    [TearDown]
+    procedure TearDown; override;
+
+  published
+    procedure TestIncluir;
+    procedure TesteAlterar;
+    procedure TesteExcluir;
+
+  end;
+
+implementation
+
+{ TestTestProvatecCredores }
+
+procedure TestTestProvatecCredores.SetUp;
+begin
+  inherited;
+
+end;
+
+procedure TestTestProvatecCredores.TearDown;
+begin
+  inherited;
+
+end;
+
+procedure TestTestProvatecCredores.TesteAlterar;
+begin
+
+end;
+
+procedure TestTestProvatecCredores.TesteExcluir;
+begin
+
+end;
+
+procedure TestTestProvatecCredores.TestIncluir;
+begin
+
+end;
+
+initialization
+  RegisterTest(TestTestProvatecCredores.Suite);
+
+end.

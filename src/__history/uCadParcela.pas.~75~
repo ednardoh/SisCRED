@@ -1,0 +1,631 @@
+unit uCadParcela;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, uCadFormBase, Vcl.StdCtrls, Vcl.Buttons,
+  Vcl.ExtCtrls, Data.DB, Vcl.Grids, Vcl.DBGrids, Vcl.ComCtrls, Vcl.Mask,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, System.JSON, REST.Json, REST.Types,
+  Vcl.Imaging.pngimage, REST.Client, Data.Bind.Components, Data.Bind.ObjectScope,
+  cxGraphics, cxControls, cxLookAndFeels, cxLookAndFeelPainters, cxContainer,
+  cxEdit, cxTextEdit, cxCurrencyEdit;
+
+type
+  TfrmCadParcela = class(TfrmCadFormBase)
+    Label13: TLabel;
+    Edt_ID: TEdit;
+    pn_Grid: TPanel;
+    Label1: TLabel;
+    Edt_Tipopgto: TEdit;
+    btnConsultaTPGTO: TBitBtn;
+    Edt_Descr_Tipopgto: TEdit;
+    Label2: TLabel;
+    Edt_Credor: TEdit;
+    btnConsultaCREDOR: TBitBtn;
+    Edt_Descr_Credor: TEdit;
+    Label3: TLabel;
+    Edt_Cliente: TEdit;
+    btnConsultaCLIENTE: TBitBtn;
+    Edt_Descr_Cliente: TEdit;
+    DBG_CadCli: TDBGrid;
+    GroupBox1: TGroupBox;
+    Label5: TLabel;
+    Label6: TLabel;
+    Label7: TLabel;
+    Label8: TLabel;
+    Label9: TLabel;
+    Label10: TLabel;
+    Label11: TLabel;
+    Label12: TLabel;
+    Label4: TLabel;
+    MKE_primeira_Parc: TMaskEdit;
+    MKE_terceira_Parc: TMaskEdit;
+    MKE_segunda_Parc: TMaskEdit;
+    MKE_quarta_Parc: TMaskEdit;
+    TBParcelas: TFDMemTable;
+    ds_Parcelas: TDataSource;
+    TBParcelasid_parcelas: TIntegerField;
+    TBParcelasid_tipo_pgto: TIntegerField;
+    TBParcelasid_credor: TIntegerField;
+    TBParcelasid_cliente: TIntegerField;
+    TBParcelasvalor_total: TCurrencyField;
+    TBParcelasdt_primeira_parcela: TStringField;
+    TBParcelasvl_primeira_parcela: TCurrencyField;
+    TBParcelasdt_segunda_parcela: TStringField;
+    TBParcelasvl_segunda_parcela: TCurrencyField;
+    TBParcelasdt_terceira_parcela: TStringField;
+    TBParcelasvl_terceira_parcela: TCurrencyField;
+    TBParcelasdt_quarta_parcela: TStringField;
+    TBParcelasvl_quarta_parcela: TCurrencyField;
+    TBParcelasstatus: TIntegerField;
+    RESTResponse1: TRESTResponse;
+    RESTClient1: TRESTClient;
+    RESTRequest1: TRESTRequest;
+    Edt_Valortot: TcxCurrencyEdit;
+    Edt_Valor_primeira_parc: TcxCurrencyEdit;
+    Edt_Valor_segunda_parc: TcxCurrencyEdit;
+    Edt_Valor_terceira_parc: TcxCurrencyEdit;
+    Edt_Valor_quarta_parc: TcxCurrencyEdit;
+    procedure Edt_IDExit(Sender: TObject);
+    procedure MKE_primeira_ParcEnter(Sender: TObject);
+    procedure MKE_primeira_ParcExit(Sender: TObject);
+    procedure btnConsultaTPGTOClick(Sender: TObject);
+    procedure btnConsultaCREDORClick(Sender: TObject);
+    procedure btnConsultaCLIENTEClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure BTN_InserirClick(Sender: TObject);
+    procedure BTN_EditarClick(Sender: TObject);
+    procedure BTN_CancelarClick(Sender: TObject);
+    procedure BTN_GravarClick(Sender: TObject);
+    procedure BTN_ExcluirClick(Sender: TObject);
+    procedure DBG_CadCliCellClick(Column: TColumn);
+    procedure DBG_CadCliDblClick(Sender: TObject);
+    procedure Edt_Valor_primeira_parcExit(Sender: TObject);
+    procedure Edt_Valor_primeira_parcEnter(Sender: TObject);
+    procedure Edt_IDEnter(Sender: TObject);
+  private
+    { Private declarations }
+    strStatusCli: string;
+    IntID: Integer;
+    Objeto,
+    Objt: TJsonObject;
+    ParRows,
+    PRows: TJsonPair;
+    strApiDataSet: string;
+    function RetornaDataNull(AVal: string): string;
+    procedure AtualizaEdits(ATipopgto: string);
+    procedure LimpaCampos;
+    procedure GravaParcela;
+    procedure ExcluiDados;
+    procedure LeRegistros;
+    procedure PreencheCampos;
+    procedure BuscaParcelas(strURL, strAText: string); //busca parcelas
+    procedure BuscaTipopagto(strURL, strAText: string); //busca tipo de pagamento
+    procedure BuscaCredor(strURL, strAText: string); //busca credor
+    procedure BuscaCLiente(strURL, strAText: string); //busca Clientes
+    procedure PreencheDataSetTipopgto(strJSONValue: string);
+    procedure PreencheDataSetCredores(strJSONValue: string);
+    procedure PreencheDataSetParcelas(strJSONValue: string);
+    procedure PreencheDataSetClientes(strJSONValue: string);
+  public
+    { Public declarations }
+  end;
+
+var
+  frmCadParcela: TfrmCadParcela;
+
+implementation
+
+{$R *.dfm}
+
+uses uPesquisa, uDatamodulo;
+
+procedure TfrmCadParcela.AtualizaEdits(ATipopgto: string);
+begin
+  if ATipopgto = 'A VISTA' then
+  begin
+    MKE_primeira_Parc.Enabled       := False;
+    Edt_Valor_primeira_parc.Enabled := False;
+    MKE_segunda_Parc.Enabled        := False;
+    Edt_Valor_segunda_parc.Enabled  := False;
+    MKE_terceira_Parc.Enabled       := False;
+    Edt_Valor_terceira_parc.Enabled := False;
+    MKE_quarta_Parc.Enabled         := False;
+    Edt_Valor_quarta_parc.Enabled   := False;
+  end
+  else
+    if ATipopgto = '1 + 1' then
+    begin
+      MKE_primeira_Parc.Enabled       := True;
+      Edt_Valor_primeira_parc.Enabled := True;
+      MKE_segunda_Parc.Enabled        := True;
+      Edt_Valor_segunda_parc.Enabled  := True;
+      MKE_terceira_Parc.Enabled       := False;
+      Edt_Valor_terceira_parc.Enabled := False;
+      MKE_quarta_Parc.Enabled         := False;
+      Edt_Valor_quarta_parc.Enabled   := False;
+    end
+    else
+      if ATipopgto = '1 + 2' then
+      begin
+        MKE_primeira_Parc.Enabled       := True;
+        Edt_Valor_primeira_parc.Enabled := True;
+        MKE_segunda_Parc.Enabled        := True;
+        Edt_Valor_segunda_parc.Enabled  := True;
+        MKE_terceira_Parc.Enabled       := True;
+        Edt_Valor_terceira_parc.Enabled := True;
+        MKE_quarta_Parc.Enabled         := False;
+        Edt_Valor_quarta_parc.Enabled   := False;
+      end
+      else
+        if ATipopgto = '1 + 3' then
+        begin
+          MKE_primeira_Parc.Enabled       := True;
+          Edt_Valor_primeira_parc.Enabled := True;
+          MKE_segunda_Parc.Enabled        := True;
+          Edt_Valor_segunda_parc.Enabled  := True;
+          MKE_terceira_Parc.Enabled       := True;
+          Edt_Valor_terceira_parc.Enabled := True;
+          MKE_quarta_Parc.Enabled         := True;
+          Edt_Valor_quarta_parc.Enabled   := True;
+        end;
+end;
+
+procedure TfrmCadParcela.btnConsultaCLIENTEClick(Sender: TObject);
+begin
+  inherited;
+  FrmPesquisa := TFrmPesquisa.Create(Self);
+  FrmPesquisa.gblNomeTabela := 'tb_clientes';
+  FrmPesquisa.Caption := 'Consulta na Tabela de [Clientes]';
+  FrmPesquisa.ShowModal;
+  Edt_Cliente.Text       := frmDatamodulo.gblValCodigo;
+  Edt_Descr_Cliente.Text := frmDatamodulo.gblValNome;
+  Edt_Valortot.SetFocus;
+end;
+
+procedure TfrmCadParcela.btnConsultaCREDORClick(Sender: TObject);
+begin
+  inherited;
+  FrmPesquisa := TFrmPesquisa.Create(Self);
+  FrmPesquisa.gblNomeTabela := 'tb_credores';
+  FrmPesquisa.Caption := 'Consulta na Tabela de [Credores]';
+  FrmPesquisa.ShowModal;
+  Edt_Credor.Text       := frmDatamodulo.gblValCodigo;
+  Edt_Descr_Credor.Text := frmDatamodulo.gblValNome;
+  Edt_Cliente.SetFocus;
+end;
+
+procedure TfrmCadParcela.btnConsultaTPGTOClick(Sender: TObject);
+begin
+  inherited;
+  FrmPesquisa := TFrmPesquisa.Create(Self);
+  FrmPesquisa.gblNomeTabela := 'tb_tipopgto';
+  FrmPesquisa.Caption := 'Consulta na Tabela de [Tipo de Pagemento]';
+  FrmPesquisa.ShowModal;
+  Edt_Tipopgto.Text       := frmDatamodulo.gblValCodigo;
+  Edt_Descr_Tipopgto.Text := frmDatamodulo.gblValNome;
+  AtualizaEdits(frmDatamodulo.gblValNome);
+  Edt_Credor.SetFocus;
+end;
+
+procedure TfrmCadParcela.BTN_CancelarClick(Sender: TObject);
+begin
+  inherited;
+  strStatusCli :='';
+end;
+
+procedure TfrmCadParcela.BTN_EditarClick(Sender: TObject);
+begin
+  strStatusCli :='dsEditando';
+  inherited;
+  Edt_Tipopgto.SetFocus;
+end;
+
+procedure TfrmCadParcela.BTN_ExcluirClick(Sender: TObject);
+begin
+  strStatusCli :='dsExcluindo';
+  ExcluiDados;
+  inherited;
+  LeRegistros;
+end;
+
+procedure TfrmCadParcela.BTN_GravarClick(Sender: TObject);
+begin
+  GravaParcela;
+  inherited;
+  strStatusCli :='';
+  LeRegistros;
+end;
+
+procedure TfrmCadParcela.BTN_InserirClick(Sender: TObject);
+begin
+  strStatusCli :='dsInserindo';
+  inherited;
+  LimpaCampos;
+  Edt_Tipopgto.SetFocus;
+end;
+
+procedure TfrmCadParcela.BuscaCLiente(strURL, strAText: string);
+var
+  I: Integer;
+  strJSON: string;
+begin
+  strApiDataSet := 'stAPI';
+  RESTClient1.BaseURL := strURL + strAText;
+  RESTRequest1.Method := rmGET;
+  RESTRequest1.Execute;
+
+  if RESTResponse1.StatusCode in [200,201,204] then
+    begin
+      PreencheDataSetClientes(RESTResponse1.Content);  //processa o JSon
+    end;
+end;
+
+procedure TfrmCadParcela.BuscaCredor(strURL, strAText: string);
+var
+  I: Integer;
+  strJSON: string;
+begin
+  strApiDataSet := 'stAPI';
+  RESTClient1.BaseURL := strURL + strAText;
+  RESTRequest1.Method := rmGET;
+  RESTRequest1.Execute;
+
+  if RESTResponse1.StatusCode in [200,201,204] then
+    begin
+      PreencheDataSetCredores(RESTResponse1.Content);  //processa o JSon
+    end;
+end;
+
+procedure TfrmCadParcela.BuscaParcelas(strURL, strAText: string);
+var
+  I: Integer;
+  strJSON: string;
+begin
+  strApiDataSet := 'stAPI';
+  TBParcelas.Close;
+  TBParcelas.Open;
+  TBParcelas.EmptyDataSet;
+  TBParcelas.IndexFieldNames := 'id_parcelas';   //só para order por id
+  DBG_CadCli.DataSource := Nil;
+  DBG_CadCli.DataSource := ds_Parcelas;
+  TBParcelas.Close;
+  TBParcelas.Open;
+
+  RESTClient1.BaseURL := strURL + strAText;
+  RESTRequest1.Method := rmGET;
+  RESTRequest1.Execute;
+
+  if RESTResponse1.StatusCode in [200,201,204] then
+    begin
+      PreencheDataSetParcelas(RESTResponse1.Content);  //processa o JSon
+    end;
+
+  RESTClient1.BaseURL   :='';
+  RESTRequest1.Resource :='';
+  RESTRequest1.Method   := rmGET;
+  RESTRequest1.AddBody('');
+
+end;
+
+procedure TfrmCadParcela.BuscaTipopagto(strURL, strAText: string);
+var
+  I: Integer;
+  strJSON: string;
+begin
+  try
+    strApiDataSet := 'stAPI';
+
+    RESTClient1.BaseURL := strURL + strAText;
+    RESTRequest1.Method := rmGET;
+    RESTRequest1.Execute;
+
+    if RESTResponse1.StatusCode in [200,201,204] then
+      begin
+        PreencheDataSetTipopgto(RESTResponse1.Content);  //processa o JSon
+      end;
+
+  finally
+    RESTClient1.BaseURL   :='';
+    RESTRequest1.Resource :='';
+    RESTRequest1.Method   := rmGET;
+    RESTRequest1.AddBody('');
+  end;
+end;
+
+procedure TfrmCadParcela.DBG_CadCliCellClick(Column: TColumn);
+begin
+  inherited;
+  PreencheCampos;
+end;
+
+procedure TfrmCadParcela.DBG_CadCliDblClick(Sender: TObject);
+begin
+  inherited;
+  PreencheCampos;
+end;
+
+procedure TfrmCadParcela.Edt_IDEnter(Sender: TObject);
+begin
+  inherited;
+  TEdit(Sender).Color := clYellow;
+end;
+
+procedure TfrmCadParcela.Edt_IDExit(Sender: TObject);
+begin
+  inherited;
+  TEdit(Sender).Color := clWindow;
+end;
+
+procedure TfrmCadParcela.Edt_Valor_primeira_parcEnter(Sender: TObject);
+begin
+  inherited;
+  TcxCurrencyEdit(Sender).Style.Color := clYellow;
+end;
+
+procedure TfrmCadParcela.Edt_Valor_primeira_parcExit(Sender: TObject);
+begin
+  inherited;
+  TcxCurrencyEdit(Sender).Style.Color := clWindow;
+end;
+
+procedure TfrmCadParcela.ExcluiDados;
+begin
+  if strStatusCli ='dsExcluindo' then
+    begin
+      if Application.messageBox('Deseja Realmente Apagar Essa Parcela?',
+        'Confirmação',mb_YesNo+mb_IconInformation+mb_DefButton2) = IDYES then
+        begin
+          try
+            RESTClient1.BaseURL := 'http://localhost:9000/parceladelete/' + IntToStr(IntID);
+            RESTRequest1.Method := rmDELETE;
+            RESTRequest1.Execute;
+          finally
+            RESTClient1.BaseURL   :='';
+            RESTRequest1.Resource :='';
+            RESTRequest1.Method   := rmGET;
+            RESTRequest1.AddBody('');
+          end;
+        end;
+    end;
+end;
+
+procedure TfrmCadParcela.FormShow(Sender: TObject);
+begin
+  inherited;
+  TBParcelas.Close;
+  TBParcelas.Open;
+  LeRegistros;
+end;
+
+procedure TfrmCadParcela.GravaParcela;
+var
+  oJson: TJSONObject;
+begin
+  if strStatusCli ='dsInserindo' then
+    begin
+      try
+        RESTClient1.BaseURL       := 'http://localhost:9000/';
+        RESTRequest1.Resource     := 'parcelainsert';
+        RESTRequest1.Method       := rmPOST;
+        oJson := TJSONObject.Create;
+        oJson.AddPair('id_tipo_pgto' , Edt_Tipopgto.Text);
+        oJson.AddPair('id_credor'    , Edt_Credor.Text);
+        oJson.AddPair('id_cliente'   , Edt_Cliente.Text);
+        oJson.AddPair('valor_total'  , Edt_Valortot.Value.ToString);
+        oJson.AddPair('dt_primeira_parcela' , RetornaDataNull(MKE_primeira_Parc.Text));
+        oJson.AddPair('vl_primeira_parcela', Edt_Valor_primeira_parc.Value.ToString);
+        oJson.AddPair('dt_segunda_parcela' , RetornaDataNull(MKE_segunda_Parc.Text));
+        oJson.AddPair('vl_segunda_parcela' , Edt_Valor_segunda_parc.Value.ToString);
+        oJson.AddPair('dt_terceira_parcela', RetornaDataNull(MKE_terceira_Parc.Text));
+        oJson.AddPair('vl_terceira_parcela', Edt_Valor_terceira_parc.Value.ToString);
+        oJson.AddPair('dt_quarta_parcela'  , RetornaDataNull(MKE_quarta_Parc.Text));
+        oJson.AddPair('vl_quarta_parcela'  , Edt_Valor_quarta_parc.Value.ToString);
+        oJson.AddPair('status'   , '2');  //0=Em aberto, 1=Em Atraso, 2=Liquidado
+        RESTRequest1.AddBody(oJson);
+        RESTRequest1.Execute;
+      finally
+        oJson.Free;
+        RESTClient1.BaseURL   :='';
+        RESTRequest1.Resource :='';
+        RESTRequest1.Method   := rmGET;
+        RESTRequest1.AddBody('');
+      end;
+    end
+  else
+    if strStatusCli ='dsEditando' then
+      begin
+        try
+          RESTClient1.BaseURL       := 'http://localhost:9000/';
+          RESTRequest1.Resource     :='parcelaupdate';
+          RESTRequest1.Method       := rmPUT;
+          oJson := TJSONObject.Create;
+          oJson.AddPair('id_parcelas'  , Edt_ID.Text);
+          oJson.AddPair('id_tipo_pgto' , Edt_Tipopgto.Text);
+          oJson.AddPair('id_credor'    , Edt_Credor.Text);
+          oJson.AddPair('id_cliente'   , Edt_Cliente.Text);
+          oJson.AddPair('valor_total'  , Edt_Valortot.Value.ToString);
+          oJson.AddPair('dt_primeira_parcela' , MKE_primeira_Parc.Text);
+          oJson.AddPair('vl_primeira_parcela', Edt_Valor_primeira_parc.Value.ToString);
+          oJson.AddPair('dt_segunda_parcela' , MKE_segunda_Parc.Text);
+          oJson.AddPair('vl_segunda_parcela' , Edt_Valor_segunda_parc.Value.ToString);
+          oJson.AddPair('dt_terceira_parcela', MKE_terceira_Parc.Text);
+          oJson.AddPair('vl_terceira_parcela', Edt_Valor_terceira_parc.Value.ToString);
+          oJson.AddPair('dt_quarta_parcela'  , MKE_quarta_Parc.Text);
+          oJson.AddPair('vl_quarta_parcela'  , Edt_Valor_quarta_parc.Value.ToString);
+          oJson.AddPair('status'   , '0');
+          RESTRequest1.AddBody(oJson);
+          RESTRequest1.Execute;
+        finally
+          oJson.Free;
+          RESTClient1.BaseURL   :='';
+          RESTRequest1.Resource :='';
+          RESTRequest1.Method   := rmGET;
+          RESTRequest1.AddBody('');
+        end;
+      end;
+  strStatusCli :='';
+end;
+
+procedure TfrmCadParcela.LeRegistros;
+begin
+  BuscaParcelas('http://localhost:9000/parcelasall','');
+end;
+
+procedure TfrmCadParcela.LimpaCampos;
+begin
+  Edt_ID.Clear;
+  Edt_Tipopgto.Clear;
+  Edt_Descr_Tipopgto.Clear;
+  Edt_Credor.Clear;
+  Edt_Descr_Credor.Clear;
+  Edt_Cliente.Clear;
+  Edt_Descr_Cliente.Clear;
+  Edt_Valortot.Text :='0,00';
+  MKE_primeira_Parc.Clear;
+  Edt_Valor_primeira_parc.Text :='0,00';
+  MKE_segunda_Parc.Clear;
+  Edt_Valor_segunda_parc.Text := '0,00';
+  MKE_terceira_Parc.Clear;
+  Edt_Valor_terceira_parc.Text := '0,00';
+  MKE_quarta_Parc.Clear;
+  Edt_Valor_quarta_parc.Text := '0,00';
+end;
+
+procedure TfrmCadParcela.MKE_primeira_ParcEnter(Sender: TObject);
+begin
+  inherited;
+  TMaskEdit(Sender).Color := clYellow;
+end;
+
+procedure TfrmCadParcela.MKE_primeira_ParcExit(Sender: TObject);
+begin
+  inherited;
+  TMaskEdit(Sender).Color := clWindow;
+end;
+
+procedure TfrmCadParcela.PreencheCampos;
+begin
+  if strApiDataSet = 'stAPI' then  //consulta vem direto do banco
+    begin  //consulta vem do consumo da API Horse
+      IntID                        := ds_Parcelas.DataSet.FieldByName('id_parcelas').AsInteger;
+      Edt_ID.Text                  := IntID.ToString;
+      Edt_Tipopgto.Text            := ds_Parcelas.DataSet.FieldByName('id_tipo_pgto').AsString;
+      Edt_Credor.Text              := ds_Parcelas.DataSet.FieldByName('id_credor').AsString;
+      Edt_Cliente.Text             := ds_Parcelas.DataSet.FieldByName('id_cliente').AsString;
+      Edt_Valortot.Text            := ds_Parcelas.DataSet.FieldByName('valor_total').AsString;
+      MKE_primeira_Parc.Text       := ds_Parcelas.DataSet.FieldByName('dt_primeira_parcela').AsString;
+      Edt_Valor_primeira_parc.Text := ds_Parcelas.DataSet.FieldByName('vl_primeira_parcela').AsString;
+      MKE_segunda_Parc.Text        := ds_Parcelas.DataSet.FieldByName('dt_segunda_parcela').AsString;
+      Edt_Valor_segunda_parc.Text  := ds_Parcelas.DataSet.FieldByName('vl_segunda_parcela').AsString;
+      MKE_terceira_Parc.Text       := ds_Parcelas.DataSet.FieldByName('dt_terceira_parcela').AsString;
+      Edt_Valor_terceira_parc.Text := ds_Parcelas.DataSet.FieldByName('vl_terceira_parcela').AsString;
+      MKE_quarta_Parc.Text         := ds_Parcelas.DataSet.FieldByName('dt_quarta_parcela').AsString;
+      Edt_Valor_quarta_parc.Text   := ds_Parcelas.DataSet.FieldByName('vl_quarta_parcela').AsString;
+    end;
+  BuscaTipopagto('http://localhost:9000/tipopgtobyid/', IntID.ToString);
+  BuscaCredor('http://localhost:9000/credoresbyid/',trim(Edt_Credor.Text));
+  BuscaCLiente('http://localhost:9000/clientesbyid/',trim(Edt_Cliente.Text));
+end;
+
+procedure TfrmCadParcela.PreencheDataSetClientes(strJSONValue: string);
+var
+  JsonObjArray: TJSONArray;
+  JsonObjectJson: TJSONObject;
+  strTOJSon: string;
+  I: Integer;
+begin
+  //Processa o JSon para DataSet - Horse
+  Application.ProcessMessages;
+  JsonObjArray := TJSONObject.ParseJSONValue( strJSONValue ) as TJSONArray;
+  strTOJSon := JsonObjArray.Items[I].ToJSON;
+  JsonObjectJson := TJSONObject.ParseJSONValue( strTOJSon ) as TJSONObject;
+  Edt_Descr_Cliente.ReadOnly := False;
+  Edt_Descr_Cliente.Text     := JsonObjectJson.GetValue('nome').Value;
+  Edt_Descr_Cliente.ReadOnly := True;
+end;
+
+procedure TfrmCadParcela.PreencheDataSetCredores(strJSONValue: string);
+var
+  JsonObjArray: TJSONArray;
+  JsonObjectJson: TJSONObject;
+  strTOJSon: string;
+  I: Integer;
+begin
+  //Processa o JSon para DataSet - Horse
+  Application.ProcessMessages;
+
+  JsonObjArray := TJSONObject.ParseJSONValue( strJSONValue ) as TJSONArray;
+
+  strTOJSon := JsonObjArray.Items[I].ToJSON;
+  JsonObjectJson := TJSONObject.ParseJSONValue( strTOJSon ) as TJSONObject;
+  Edt_Descr_Credor.ReadOnly := False;
+  Edt_Descr_Credor.Text     := JsonObjectJson.GetValue('nome').Value;
+  Edt_Descr_Credor.ReadOnly := True;
+end;
+
+procedure TfrmCadParcela.PreencheDataSetParcelas(strJSONValue: string);
+var
+  JsonObjArray: TJSONArray;
+  JsonObjectJson: TJSONObject;
+  strTOJSon: string;
+  I: Integer;
+begin
+  //Processa o JSon para DataSet - Horse
+  Application.ProcessMessages;
+
+  JsonObjArray := TJSONObject.ParseJSONValue( strJSONValue ) as TJSONArray;
+
+  for I := 0 to JsonObjArray.Count-1 do
+    begin
+      strTOJSon := JsonObjArray.Items[I].ToJSON;
+      JsonObjectJson := TJSONObject.ParseJSONValue( strTOJSon ) as TJSONObject;
+
+      TBParcelas.Insert;
+      TBParcelasid_parcelas.AsInteger          := JsonObjectJson.GetValue('id_parcelas').Value.ToInteger;
+      TBParcelasid_tipo_pgto.AsInteger         := JsonObjectJson.GetValue('id_tipo_pgto').Value.ToInteger;
+      TBParcelasid_credor.AsInteger            := JsonObjectJson.GetValue('id_credor').Value.ToInteger;
+      TBParcelasid_cliente.AsInteger           := JsonObjectJson.GetValue('id_cliente').Value.ToInteger;
+      TBParcelasvalor_total.AsString           := JsonObjectJson.GetValue('valor_total').Value;
+      TBParcelasdt_primeira_parcela.AsString   := JsonObjectJson.GetValue('dt_primeira_parcela').Value;
+      TBParcelasvl_primeira_parcela.AsString   := JsonObjectJson.GetValue('vl_primeira_parcela').Value;
+      TBParcelasdt_segunda_parcela.AsString    := JsonObjectJson.GetValue('dt_segunda_parcela').Value;
+      TBParcelasvl_segunda_parcela.AsString    := JsonObjectJson.GetValue('vl_segunda_parcela').Value;
+      TBParcelasdt_terceira_parcela.AsString   := JsonObjectJson.GetValue('dt_terceira_parcela').Value;
+      TBParcelasvl_terceira_parcela.AsString   := JsonObjectJson.GetValue('vl_terceira_parcela').Value;
+      TBParcelasdt_quarta_parcela.AsString     := JsonObjectJson.GetValue('dt_quarta_parcela').Value;
+      TBParcelasvl_quarta_parcela.AsString     := JsonObjectJson.GetValue('vl_quarta_parcela').Value;
+      TBParcelasstatus.AsInteger               := JsonObjectJson.GetValue('status').Value.ToInteger;
+      TBParcelas.Post;
+    end;
+end;
+
+procedure TfrmCadParcela.PreencheDataSetTipopgto(strJSONValue: string);
+var
+  JsonObjArray: TJSONArray;
+  JsonObjectJson: TJSONObject;
+  strTOJSon: string;
+  I: Integer;
+begin
+  //Processa o JSon para DataSet - Horse
+  Application.ProcessMessages;
+  JsonObjArray := TJSONObject.ParseJSONValue( strJSONValue ) as TJSONArray;
+  strTOJSon := JsonObjArray.Items[I].ToJSON;
+  JsonObjectJson := TJSONObject.ParseJSONValue( strTOJSon ) as TJSONObject;
+  Edt_Descr_Tipopgto.ReadOnly := False;
+  Edt_Descr_Tipopgto.Text     := JsonObjectJson.GetValue('tipopgto').Value;
+  Edt_Descr_Tipopgto.ReadOnly := True;
+  AtualizaEdits(JsonObjectJson.GetValue('tipopgto').Value);
+end;
+
+function TfrmCadParcela.RetornaDataNull(AVal: string): string;
+begin
+  if AVal = '  /  /    ' then
+    result :=''
+  else result :=AVal;
+end;
+
+end.
